@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MR. FLAME — Admin</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <video id="bgVideo" class="bg-video" autoplay muted loop playsinline poster="Logo.jpeg">
+    <source src="bg.mp4" type="video/mp4">
+  </video>
+
+  <header class="topbar">
+    <div class="brand">MR. FLAME — Admin</div>
+    <div id="adminBadge" class="user-badge">Admin</div>
+  </header>
+
+  <main class="container">
+    <div class="glass-card container-card">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <h3>Admin Panel</h3>
+        <div>
+          <button id="addProductBtn" class="btn btn-primary">+ Add Product</button>
+          <button id="logoutBtn" class="btn btn-outline">Logout</button>
+        </div>
+      </div>
+
+      <p class="muted">Use the controls to add, edit, or delete products. Changes are stored locally (localStorage).</p>
+
+      <div id="productGrid" class="grid"></div>
+
+      <div style="margin-top:14px;display:flex;gap:10px;justify-content:center">
+        <button id="openShopUser" class="btn btn-outline">Open Shop (user view)</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modals (Add/Edit) -->
+  <div id="productModal" class="modal hidden">
+    <div class="modal-card">
+      <h3 id="productModalTitle">Add Product</h3>
+      <label>Title <input id="prodTitle" type="text"></label>
+      <label>Price <input id="prodPrice" type="text"></label>
+      <label>Image URL <input id="prodImage" type="text" placeholder="bgmi.jpg or full URL"></label>
+      <label>Description <textarea id="prodDesc"></textarea></label>
+      <div class="modal-actions">
+        <button id="saveProduct" class="btn btn-primary">Save</button>
+        <button id="cancelProduct" class="btn btn-outline">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="navOverlay" class="overlay hidden" aria-hidden="true">
+    <div class="overlay-glow"></div>
+    <div class="overlay-content" role="status" aria-live="polite">
+      <div class="spinner-orb"><div class="orb-inner"></div></div>
+      <div id="overlayText" class="overlay-text">Loading...</div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    (function(){
+      // require admin session
+      const cur = JSON.parse(localStorage.getItem('mrflame_current') || 'null');
+      if(!cur || (cur.username || '').toLowerCase() !== 'itszflame' || cur.dob !== '2000-11-22') {
+        // not admin -> redirect to entry
+        window.location.href = 'shop.html';
+      }
+
+      document.getElementById('adminBadge').textContent = cur.username || 'Admin';
+
+      // product persistence helpers
+      function loadProducts(){ return JSON.parse(localStorage.getItem('mrflame_products') || 'null') || [
+        { id:'p1', title:'GameSetupFile', price:'₹999', image:'bgmi.jpg', desc:'Complete game setup package' },
+        { id:'p2', title:'My PC', price:'₹59,999', image:'palworld.jpg', desc:'Custom gaming rig' },
+        { id:'p3', title:'Mouse Pad', price:'₹299', image:'Gta.jpg', desc:'Large cloth mouse pad' }
+      ]; }
+      function saveProducts(p){ localStorage.setItem('mrflame_products', JSON.stringify(p)); }
+
+      const grid = document.getElementById('productGrid');
+      const addBtn = document.getElementById('addProductBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const openShopUser = document.getElementById('openShopUser');
+
+      // modal elements
+      const productModal = document.getElementById('productModal');
+      const productModalTitle = document.getElementById('productModalTitle');
+      const prodTitle = document.getElementById('prodTitle');
+      const prodPrice = document.getElementById('prodPrice');
+      const prodImage = document.getElementById('prodImage');
+      const prodDesc = document.getElementById('prodDesc');
+      const saveProduct = document.getElementById('saveProduct');
+      const cancelProduct = document.getElementById('cancelProduct');
+      let editingId = null;
+
+      function id(){ return 'p_' + Math.random().toString(36).slice(2,9); }
+
+      function render(){
+        const products = loadProducts();
+        grid.innerHTML = '';
+        products.forEach(p=>{
+          const el = document.createElement('div');
+          el.className = 'card-prod';
+          el.innerHTML = `
+            <img src="${p.image}" alt="${p.title}">
+            <div class="prod-title">${p.title}</div>
+            <div class="prod-price">${p.price}</div>
+            <div class="muted" style="font-size:13px">${p.desc || ''}</div>
+            <div class="prod-actions">
+              <div>
+                <button class="small-btn dm-btn" data-id="${p.id}">DM</button>
+                <button class="small-btn view-btn" data-id="${p.id}">View</button>
+              </div>
+              <div>
+                <button class="small-btn edit-btn" data-id="${p.id}">Edit</button>
+                <button class="small-btn delete-btn" data-id="${p.id}">Delete</button>
+              </div>
+            </div>
+          `;
+          grid.appendChild(el);
+        });
+
+        // attach handlers
+        grid.querySelectorAll('.edit-btn').forEach(b => b.addEventListener('click', onEdit));
+        grid.querySelectorAll('.delete-btn').forEach(b => b.addEventListener('click', onDelete));
+        grid.querySelectorAll('.dm-btn').forEach(b => b.addEventListener('click', (ev)=>{
+          const pid = ev.currentTarget.dataset.id;
+          // simulate opening DM to visitor list or admin action
+          alert('Open Instagram DM with visitor or handle messages in the visitor list (simulated).');
+        }));
+        grid.querySelectorAll('.view-btn').forEach(b => b.addEventListener('click', (ev)=>{
+          const pid = ev.currentTarget.dataset.id;
+          const products = loadProducts();
+          const p = products.find(x=>x.id===pid);
+          alert(`${p.title}\n\n${p.desc}\n\nPrice: ${p.price}`);
+        }));
+      }
+
+      addBtn.addEventListener('click', ()=>{
+        editingId = null;
+        productModalTitle.textContent = 'Add Product';
+        prodTitle.value = prodPrice.value = prodImage.value = prodDesc.value = '';
+        productModal.classList.remove('hidden');
+      });
+      cancelProduct.addEventListener('click', ()=> productModal.classList.add('hidden'));
+
+      saveProduct.addEventListener('click', ()=>{
+        const title = (prodTitle.value||'').trim();
+        const price = (prodPrice.value||'').trim();
+        const image = (prodImage.value||'').trim() || 'Gta.jpg';
+        const desc = (prodDesc.value||'').trim();
+        if(!title || !price) { alert('Title and price required'); return; }
+        const products = loadProducts();
+        if(editingId) {
+          const idx = products.findIndex(x=>x.id===editingId);
+          if(idx>=0) { products[idx] = {...products[idx], title, price, image, desc}; }
+        } else {
+          products.unshift({ id: id(), title, price, image, desc });
+        }
+        saveProducts(products);
+        productModal.classList.add('hidden');
+        render();
+      });
+
+      function onEdit(ev){
+        const pid = ev.currentTarget.dataset.id;
+        const products = loadProducts();
+        const p = products.find(x=>x.id===pid);
+        if(!p) return;
+        editingId = p.id;
+        productModalTitle.textContent = 'Edit Product';
+        prodTitle.value = p.title; prodPrice.value = p.price; prodImage.value = p.image; prodDesc.value = p.desc;
+        productModal.classList.remove('hidden');
+      }
+      function onDelete(ev){
+        if(!confirm('Delete product?')) return;
+        const pid = ev.currentTarget.dataset.id;
+        let products = loadProducts();
+        products = products.filter(x=>x.id!==pid);
+        saveProducts(products);
+        render();
+      }
+
+      logoutBtn.addEventListener('click', ()=> {
+        localStorage.removeItem('mrflame_current');
+        // show overlay whoosh then go to entry
+        const overlay = window.MRFLAME_overlay;
+        overlay.show('Logging out...');
+        setTimeout(()=> {
+          overlay.hide();
+          window.location.href = 'shop.html';
+        }, 1100);
+      });
+
+      openShopUser.addEventListener('click', ()=> {
+        // open user view in new tab
+        window.open('shopuser.html', '_blank', 'noopener');
+      });
+
+      // initial render
+      render();
+    })();
+  </script>
+</body>
+</html>
