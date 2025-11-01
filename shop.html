@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MR. FLAME — Shop</title>
+  <link rel="stylesheet" href="shop-style.css">
+</head>
+<body>
+  <!-- Background video -->
+  <video id="bgVideo" class="bg-video" autoplay muted loop playsinline poster="Logo.jpeg">
+    <source src="bg.mp4" type="video/mp4">
+  </video>
+
+  <header class="topbar">
+    <div class="brand">MR. FLAME</div>
+    <div>
+      <button id="loginBtn" class="btn btn-outline">Login with Instagram</button>
+      <button id="logoutBtn" class="btn hidden">Logout</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="welcome" class="welcome">
+      <h2>Welcome to MR. FLAME Store</h2>
+      <p>Follow <strong>@itszflame</strong> to unlock the shop. Login to access products.</p>
+    </div>
+
+    <div id="shopArea" class="shop-area hidden">
+      <div class="shop-header">
+        <h3>Products</h3>
+        <div class="shop-actions">
+          <button id="addProductBtn" class="btn btn-primary hidden">+ Add Product</button>
+        </div>
+      </div>
+
+      <div id="productGrid" class="grid"></div>
+    </div>
+
+    <div id="followPrompt" class="follow-prompt hidden">
+      <p>❗ You must follow <strong>@itszflame</strong> to view the MR. FLAME shop.</p>
+      <p>Follow on Instagram and then login again to access products.</p>
+    </div>
+
+    <div id="adminPanel" class="admin-panel hidden">
+      <h4>Admin — Visitor Messages</h4>
+      <div id="messageList" class="message-list"></div>
+    </div>
+  </main>
+
+  <!-- Login modal (simulated) -->
+  <div id="loginModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <h3>Login with Instagram (simulation)</h3>
+      <label>Username
+        <input id="loginUser" type="text" placeholder="Type your instagram username">
+      </label>
+      <label class="follow-check"><input id="loginFollow" type="checkbox"> I follow @itszflame</label>
+      <div class="modal-actions">
+        <button id="doLogin" class="btn btn-primary">Login</button>
+        <button id="cancelLogin" class="btn btn-outline">Cancel</button>
+      </div>
+      <p class="note">Tip: Type <strong>itszflame</strong> to login as admin.</p>
+    </div>
+  </div>
+
+  <!-- Add / Edit product modal -->
+  <div id="productModal" class="modal hidden">
+    <div class="modal-card">
+      <h3 id="productModalTitle">Add Product</h3>
+      <label>Title <input id="prodTitle" type="text"></label>
+      <label>Price <input id="prodPrice" type="text"></label>
+      <label>Image URL <input id="prodImage" type="text" placeholder="bgmi.jpg or full URL"></label>
+      <label>Description <textarea id="prodDesc"></textarea></label>
+      <div class="modal-actions">
+        <button id="saveProduct" class="btn btn-primary">Save</button>
+        <button id="cancelProduct" class="btn btn-outline">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DM modal (for visitor or admin) -->
+  <div id="dmModal" class="modal hidden">
+    <div class="modal-card">
+      <h3 id="dmTitle">Send DM</h3>
+      <p id="dmTarget" class="muted"></p>
+      <label>Message <textarea id="dmText"></textarea></label>
+      <div class="modal-actions">
+        <button id="sendDM" class="btn btn-primary">Send</button>
+        <button id="cancelDM" class="btn btn-outline">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="shop-script.js"></script>
+</body>
+</html>
